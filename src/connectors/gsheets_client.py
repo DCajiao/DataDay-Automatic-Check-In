@@ -100,7 +100,7 @@ class AttendanceManager:
                 logger.warning(f"ID {id_number} not found")
                 return {
                     "success": False,
-                    "message": "Persona no registrada",
+                    "message": "Uy… no encontré tu registro. ¿Podés verificar tu número?",
                     "id_number": id_number
                 }
             

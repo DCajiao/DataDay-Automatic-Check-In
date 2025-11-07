@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Asistencia</title>
+    <title>Asistencia DataDay2025</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='assets/img/logo.png') }}">
 
@@ -14,14 +14,14 @@
     <div class="container">
         <header>
             <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Logo" class="logo" onerror="this.style.display='none'">
-            <h1>Control de Asistencia</h1>
+            <h1>Control de Asistencia — Datavio te da la bienvenida! 🐾</h1>
         </header>
 
         <main>
             <div class="card">
                 <div id="formHeader">
-                    <h2>Registrar Llegada</h2>
-                    <p class="subtitle">Ingrese su número de identificación</p>
+                    <h2>Registrar mi llegada</h2>
+                    <p class="subtitle">Ingresa tu número de identificación (sin puntos ni comas)</p>
                 </div>
                 
                 <form id="attendanceForm">
@@ -126,7 +126,7 @@
             form.style.display = 'none';
             
             // Show success message permanently
-            messageText.textContent = '✓ Asistencia Registrada';
+            messageText.textContent = '✓ ¡Asistencia registrada con éxito!';
             messageBox.className = 'message-box success permanent';
             
             let detailsHTML = `
@@ -139,7 +139,7 @@
                     <p class="shift-badge ${data.shift === 'Jornada Mañana' ? 'morning' : 'afternoon'}">
                         ${data.shift || 'N/A'}
                     </p>
-                    <button class="btn-secondary" onclick="resetSession()">Registrar nuevamente</button>
+                    <button class="btn-secondary" onclick="resetSession()">Registrar otra llegada</button>
                 </div>
             `;
             messageDetails.innerHTML = detailsHTML;
