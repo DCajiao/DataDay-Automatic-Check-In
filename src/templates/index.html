@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia DataDay2025</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='assets/img/logo.png') }}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Sevillana&family=Quicksand:wght@400;600&display=swap"
+        rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Logo" class="logo" onerror="this.style.display='none'">
+            <h1>Control de Asistencia — Datavio te da la bienvenida! 🐾</h1>
+        </header>
+
+        <main>
+            <div class="card">
+                <div id="formHeader">
+                    <h2>Registrar mi llegada</h2>
+                    <p class="subtitle">Ingresa tu número de identificación (sin puntos ni comas)</p>
+                </div>
+                
+                <form id="attendanceForm">
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            id="idNumber" 
+                            name="id_number" 
+                            placeholder="Número de identificación"
+                            required
+                            autofocus
+                        >
+                    </div>
+                    <button type="submit" class="btn-primary">Registrar Asistencia</button>
+                </form>
+
+                <div id="messageBox" class="message-box hidden">
+                    <div class="message-content">
+                        <p id="messageText"></p>
+                        <div id="messageDetails" class="message-details"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Sistema de Control de Asistencia - 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        const form = document.getElementById('attendanceForm');
+        const formHeader = document.getElementById('formHeader');
+        const idInput = document.getElementById('idNumber');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const messageDetails = document.getElementById('messageDetails');
+
+        // Check if user is already registered in this session
+        window.addEventListener('load', () => {
+            const registered = sessionStorage.getItem('attendance_registered');
+            if (registered) {
+                const data = JSON.parse(registered);
+                showSuccessScreen(data);
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const idNumber = idInput.value.trim();
+            
+            if (!idNumber) {
+                showMessage('Por favor ingrese un número de identificación', 'error');
+                return;
+            }
+
+            // Disable form while processing
+            form.classList.add('loading');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Procesando...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/register-arrival', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id_number: idNumber })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Save registration in session
+                    sessionStorage.setItem('attendance_registered', JSON.stringify(result));
+                    showSuccessScreen(result);
+                } else {
+                    showMessage(result.message, 'error');
+                    // Re-enable form
+                    form.classList.remove('loading');
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                    idInput.focus();
+                }
+            } catch (error) {
+                showMessage('Error de conexión. Intente nuevamente.', 'error');
+                console.error('Error:', error);
+                // Re-enable form
+                form.classList.remove('loading');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                idInput.focus();
+            }
+        });
+
+        function showSuccessScreen(data) {
+            // Hide form header and form
+            formHeader.style.display = 'none';
+            form.style.display = 'none';
+            
+            // Show success message permanently
+            messageText.textContent = '✓ ¡Asistencia registrada con éxito!';
+            messageBox.className = 'message-box success permanent';
+            
+            let detailsHTML = `
+                <div class="success-details">
+                    <div class="success-icon">✓</div>
+                    <p class="welcome-text">¡Bienvenid@!</p>
+                    <p><strong>Nombre:</strong> ${data.name || 'N/A'}</p>
+                    <p><strong>ID:</strong> ${data.id_number || 'N/A'}</p>
+                    <p><strong>Hora de llegada:</strong> ${data.timestamp || 'N/A'}</p>
+                    <p class="shift-badge ${data.shift === 'Jornada Mañana' ? 'morning' : 'afternoon'}">
+                        ${data.shift || 'N/A'}
+                    </p>
+                    <button class="btn-secondary" onclick="resetSession()">Registrar otra llegada</button>
+                </div>
+            `;
+            messageDetails.innerHTML = detailsHTML;
+        }
+
+        function showMessage(message, type) {
+            messageText.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageDetails.innerHTML = '';
+
+            // Auto-hide after 4 seconds for errors
+            if (type === 'error') {
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 4000);
+            }
+        }
+
+        function resetSession() {
+            sessionStorage.removeItem('attendance_registered');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
